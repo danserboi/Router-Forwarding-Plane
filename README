@@ -1,5 +1,3 @@
-SERBOI FLOREA-DAN 325CB
-
 Descrierea implemetarii:
 
 In main, intai, vom crea un trie(pentru a cauta in O(1) cea mai potrivita intrare din tabela de rutare pentru un ip destinatie, intrucat se vor parcurge doar cei 32 biti ai unui intreg fara semn).
@@ -43,17 +41,3 @@ Au fost create structuri de date cu pentru intrare in tabela de rutare, pentru i
 struct route_table_entry are campurile uint32_t prefix, uint32_t next_hop, uint32_t mask, int interface.
 struct arp_entry are campurile uint32_t ip, uint8_t mac[6].
 Iar in nod-ul unui Trie tinem minte intrarea, daca exista, altfel NULL si are campurile struct route_table_entry* r_entry, struct Trie* bit[BITS].
-
-Probleme intampinate(au fost destule si nu se rezuma doar la cele enumerate):
-
-- nu am reusit sa implementez incremental update checksum din RFC 1624. Eu am incercat sa folosesc ecuatia 4 din documentatie, dar cred ca ori am gresit o conversie, ori cel mai probabil nu am facut operatiile bine;
-
-- nu reuseam sa forwardez nimic deoarece verificam daca protocolul este ETHERTYPE_IP fara sa folosesc functia ntohs pentru campul ether_type din ether_header;
-
-- verificam daca pachetul este ICMP, tratam cazul cand trebuie sa raspund daca pachetul imi era destinat, dar daca nu imi era destinat, pur si simplu aruncam toate pachetele IP, nu le forwardam deoarece ma incurcasem in if/else-uri;
-
-- am completat campuri fara sa fac conversia de la host byte order la network byte order;
-
-- nu parcurgeam corect intrarile din tabela ARP si mereu cream o intrare noua;nu gaseam niciodata intrarea in tabela arp deoarece avem 2 variabile cu acelasi nume pentru numarul de intrari, una globala si alta locala, iar cea globala era mereu 0, fiind si cea folosita in functia care parcurgea tabela. Astfel, trimiteam mereu o gramada de ARP REQUEST-uri.
-
-- am incurcat campurile arp_sha, arp_spa, arp_tha si arp_tpa si nu reuseam sa trimit  un ARP REQUEST corect.
