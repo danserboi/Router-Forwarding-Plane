@@ -1,0 +1,59 @@
+SERBOI FLOREA-DAN 325CB
+
+Descrierea implemetarii:
+
+In main, intai, vom crea un trie(pentru a cauta in O(1) cea mai potrivita intrare din tabela de rutare pentru un ip destinatie, intrucat se vor parcurge doar cei 32 biti ai unui intreg fara semn).
+Apoi vom parsa tabela de rutare pentru a ne stoca intrarile si in acelasi timp le vom introduce in trie. 
+Alocam dinamic tabela ARP.
+Initializam coada in care retinem pachetele pe care nu stim sa le forwardam la un moment dat deoarece nu cunoastem adresa MAC a next-hop-ului. 
+In fine, avem o bucla infinita in care primim packete pe care noi le tratam.
+Flow-ul programului este urmatorul:
+
+1) Verificam daca avem packet IP
+	i) Verificam daca packetul este de tip ICMP ECHO REQUEST si este destinat router-ului. Daca da, raspundem cu un packet de tip ICMP ECHO REPLY. Aruncam packetul si asteptam altul.
+	ii) Altfel, este un packet IP care trebuie forward-at.
+		a) Verificam daca timpul a expirat. Daca da, raspundem cu un packet ICMP de tip TIME EXCEEDED. Aruncam packetul si asteptam altul.
+		b) Verificam daca nu avem ruta pentru packetul care se doreste forward-at. Daca da, raspundem cu un packet ICMP DESTINATION UNREACHABLE. Aruncam packetul si asteptam altul.
+		c) Verificam checksum-ul este ok. Daca da, incercam sa forwardam packetul.
+Decrementam ttl, actualizam checksum, actualizam mac-ul sursa = mac-ul interfetei (interfata cele mai convenabile intrari din tabela de rutare) pe care o sa trimitem packetul. Singurul lucru care ramane de completat e mac-ul next hop-ului. Daca o avem in tabela arp, o completam si forwardam packetul. Daca nu, introducem packetul in coada si trimitem ARP REQUEST ca broadcast(mac-ul destinatie este 255:255:255:255:255:255). Completam cu grija campurile ARP: arp_sha = adresa mac a celui care cere = eu, router-ul(de pe best interface), arp_spa = adresa ip a celui care cere = ip-ul pentru best interface, arp_tha = nu e nimic, fiindca aici ar fi trebuit sa fie mac-ul cautat(pe care nu il stiu), arp_tpa = adresa ip a host-ului pe care il caut = next_hop. Trimitem packetul si asteptam alt packet.
+2) Verificam daca avem packet ARP
+	i) Daca avem ARP REQUEST, raspundem si trimitem adresa adresa MAC a interfetei pe care a venit mesajul.
+	i) Daca avem ARP REPLY, adaugam in tabela ARP adresa MAC cautata, scoatem packete din coada(si le introducem la loc) pana cand intalnim packetul in cauza pe care acum il putem forwarda dupa ce completam mac-ul next-hop-ului.
+La sfarsit-ul main-ului, eliberam memoria pentru trie, tabela de rutare si tabela ARP.
+
+Alte functii ajutatoare implementate sunt:
+
+- init_packet care initializeaza campurile unui packet;
+
+- get_arp_entry returneaza intrarea din tabela arp pentru un ip dat sau NULL daca nu exista;
+
+- parse_rtable care parseaza tabela de rutare si introduce intr-un trie intrarile pentru a cauta in O(1);
+
+- bit care returneaza valoarea bit-ului i din numarul N;
+
+- getNewTrieNode care aloca memorie si construieste un nod nou al unui Trie;
+
+- insert care insereaza o intrare din tabela de rutare in Trie;
+
+- best_route_from_trie care returneaza cea mai specifica intrare pentru un ip dat sau NULL daca nu exista;
+
+- free_trie care dezaloca memoria Trie-ului.
+
+Au fost create structuri de date cu pentru intrare in tabela de rutare, pentru intrare in tabela ARP si pentru Trie-ul folosit la cautarea in tabela de rutare.
+struct route_table_entry are campurile uint32_t prefix, uint32_t next_hop, uint32_t mask, int interface.
+struct arp_entry are campurile uint32_t ip, uint8_t mac[6].
+Iar in nod-ul unui Trie tinem minte intrarea, daca exista, altfel NULL si are campurile struct route_table_entry* r_entry, struct Trie* bit[BITS].
+
+Probleme intampinate(au fost destule si nu se rezuma doar la cele enumerate):
+
+- nu am reusit sa implementez incremental update checksum din RFC 1624. Eu am incercat sa folosesc ecuatia 4 din documentatie, dar cred ca ori am gresit o conversie, ori cel mai probabil nu am facut operatiile bine;
+
+- nu reuseam sa forwardez nimic deoarece verificam daca protocolul este ETHERTYPE_IP fara sa folosesc functia ntohs pentru campul ether_type din ether_header;
+
+- verificam daca pachetul este ICMP, tratam cazul cand trebuie sa raspund daca pachetul imi era destinat, dar daca nu imi era destinat, pur si simplu aruncam toate pachetele IP, nu le forwardam deoarece ma incurcasem in if/else-uri;
+
+- am completat campuri fara sa fac conversia de la host byte order la network byte order;
+
+- nu parcurgeam corect intrarile din tabela ARP si mereu cream o intrare noua;nu gaseam niciodata intrarea in tabela arp deoarece avem 2 variabile cu acelasi nume pentru numarul de intrari, una globala si alta locala, iar cea globala era mereu 0, fiind si cea folosita in functia care parcurgea tabela. Astfel, trimiteam mereu o gramada de ARP REQUEST-uri.
+
+- am incurcat campurile arp_sha, arp_spa, arp_tha si arp_tpa si nu reuseam sa trimit  un ARP REQUEST corect.
