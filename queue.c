@@ -1,4 +1,3 @@
-// SERBOI FLOREA-DAN 325CB
 #include "queue.h"
 #include "list.h"
 #include <stdlib.h>
@@ -24,13 +23,13 @@ int queue_empty(queue q)
 
 void queue_enq(queue q, void *element)
 {
-  if(queue_empty(q))
+  if (queue_empty(q))
     q -> head = q->tail = cons(element, NULL);
   else
-    {
-      q->tail->next = cons(element, NULL);
-      q->tail = q->tail->next;
-    }
+  {
+    q->tail->next = cons(element, NULL);
+    q->tail = q->tail->next;
+  }
 }
 
 void *queue_deq(queue q)

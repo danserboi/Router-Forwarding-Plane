@@ -1,20 +1,19 @@
-// SERBOI FLOREA-DAN 325CB
 #ifndef QUEUE_H
 #define QUEUE_H
 
 struct queue;
 typedef struct queue *queue;
 
-/* create an empty queue */
+// creaza o coada goala
 extern queue queue_create(void);
 
-/* insert an element at the end of the queue */
+// insereaza un element la sfarsitul cozii
 extern void queue_enq(queue q, void *element);
 
-/* delete the front element on the queue and return it */
+// sterge elementul de la inceputul cozii si il returneaza
 extern void *queue_deq(queue q);
 
-/* return a true value if and only if the queue is empty */
+// returneaza daca coada e goala sau nu
 extern int queue_empty(queue q);
 
 #endif

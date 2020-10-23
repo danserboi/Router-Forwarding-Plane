@@ -1,4 +1,3 @@
-// SERBOI FLOREA-DAN 325CB
 #pragma once
 #include <sys/ioctl.h>
 #include <net/if.h>
@@ -6,7 +5,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <linux/if_packet.h>
-#include <net/ethernet.h> /* the L2 protocols */
+#include <net/ethernet.h> // protocoale de nivel 2
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,24 +13,21 @@
 #include <sys/socket.h>
 #include <net/if.h>
 #include <unistd.h>
-/* According to POSIX.1-2001, POSIX.1-2008 */
+// in concordanta cu POSIX.1-2001, POSIX.1-2008
 #include <sys/select.h>
-/* ethheader */
+// ethheader
 #include <net/ethernet.h>
-/* ether_header */
+// ether_header
 #include <arpa/inet.h>
-/* icmphdr */
+// icmphdr
 #include <netinet/ip_icmp.h>
-/* arphdr */
+// arphdr
 #include <net/if_arp.h>
 #include <asm/byteorder.h>
 //contine toate campurile pentru arp header
 #include <netinet/if_ether.h>
 #include "queue.h"
-/* 
- *Note that "buffer" should be at least the MTU size of the 
- * interface, eg 1500 bytes 
- */
+
 #define MAX_LEN 1600
 #define ROUTER_NUM_INTERFACES 4
 
@@ -65,7 +61,7 @@ struct arp_entry {
 	uint8_t mac[6];
 };
 
-// In nod-ul unui Trie tinem minte intrarea, daca exista, altfel NULL
+// in nod-ul unui Trie tinem minte intrarea, daca exista, altfel NULL
 struct Trie
 {
 	struct route_table_entry* r_entry;
@@ -81,13 +77,6 @@ int get_interface_mac(int interface, uint8_t *mac);
 void init();
 void parse_arp_table();
 
-/**
- * hwaddr_aton - Convert ASCII string to MAC address (colon-delimited format)
- * @txt: MAC address as a string (e.g., "00:11:22:33:44:55")
- * @addr: Buffer for the MAC address (ETH_ALEN = 6 bytes)
- * Returns: 0 on success, -1 on failure (e.g., string not a MAC address)
- */
-int hwaddr_aton(const char *txt, uint8_t *addr);
 uint16_t checksum(void *vdata, size_t length);
 void init_packet(packet* pkt, int length, int interface);
 struct arp_entry *get_arp_entry(__u32 ip, struct arp_entry * arp_table, int arp_table_len);
@@ -97,3 +86,8 @@ struct Trie* getNewTrieNode();
 void insert(struct Trie *head, struct route_table_entry* entry);
 struct route_table_entry* best_route_from_trie(struct Trie* head, uint32_t dest_ip);
 void free_trie(struct Trie * current);
+void echo_reply(packet m, struct ether_header *eth_hdr, struct iphdr *ip_hdr);
+void time_exceeded_reply(packet m, struct ether_header *eth_hdr, struct iphdr *ip_hdr);
+void dest_unreachable_reply(packet m, struct ether_header *eth_hdr, struct iphdr *ip_hdr);
+void arp_request(uint8_t* best_mac, struct route_table_entry * best_route);
+void arp_reply(packet m, struct ether_header *eth_hdr, struct ether_arp* arp);
