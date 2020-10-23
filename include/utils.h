@@ -62,8 +62,7 @@ struct arp_entry {
 };
 
 // in nod-ul unui Trie tinem minte intrarea, daca exista, altfel NULL
-struct Trie
-{
+struct Trie {
 	struct route_table_entry* r_entry;
 	struct Trie* bit[BITS];
 };

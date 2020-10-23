@@ -3,8 +3,7 @@
 
 typedef struct cell *list;
 
-struct cell
-{
+struct cell {
 	void *element;
 	list next;
 };
